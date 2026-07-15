@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>タイムアタック・インベーダー</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      margin: 0;
+      background-color: #222;
+      color: white;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      touch-action: none; /* スワイプによる画面スクロールを防止 */
+    }
+    #info {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 320px;
+      padding: 10px;
+      box-sizing: border-box;
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    canvas {
+      background-color: #000;
+      border: 2px solid #555;
+      border-radius: 5px;
+    }
+    /* スマホ用コントローラー */
+    #controls {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 320px;
+      margin-top: 15px;
+    }
+    button {
+      background-color: #555;
+      color: white;
+      border: none;
+      padding: 20px 30px;
+      font-size: 1.5rem;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:active { background-color: #777; }
+  </style>
+</head>
+<body>
+
+  <div id="info">
+    <div>SCORE: <span id="score">0</span></div>
+    <div>TIME: <span id="timer">0.00</span>s</div>
+  </div>
+
+  <canvas id="gameCanvas" width="320" height="400"></canvas>
+
+  <div id="controls">
+    <button id="leftBtn">◀</button>
+    <button id="shootBtn">◉</button>
+    <button id="rightBtn">▶</button>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreDisplay = document.getElementById('score');
+    const timerDisplay = document.getElementById('timer');
+
+    // ゲームの状態管理
+    let isGameOver = false;
+    let isGameClear = false;
+    let score = 0;
+    
+    // ストップウォッチ用
+    let startTime = Date.now();
+    let elapsedTime = 0;
+
+    // プレイヤー設定
+    const player = { x: 145, y: 360, width: 30, height: 15, speed: 5, dx: 0 };
+    // 弾設定
+    let bullets = [];
+    // 敵設定
+    let enemies = [];
+    const enemyRows = 4;
+    const enemyCols = 6;
+    let enemyDirection = 1; // 1は右、-1は左
+    let enemySpeed = 0.5;
+
+    // 敵の初期配置
+    function initEnemies() {
+      for (let r = 0; r < enemyRows; r++) {
+        for (let c = 0; c < enemyCols; c++) {
+          enemies.push({ x: c * 40 + 20, y: r * 30 + 30, width: 25, height: 15, status: 1 });
+        }
+      }
+    }
