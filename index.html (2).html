@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<!-- スマホでの拡大縮小を防ぎ、アプリらしく表示 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>スライドパズル</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  body {
+    margin: 0; padding: 0; background-color: #f0f4f8; font-family: 'Arial', sans-serif;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100vh; touch-action: manipulation;
+  }
+  h2 { color: #333; margin-bottom: 20px; }
+  
+  #board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+    background-color: #cbd5e1;
+    padding: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    width: 300px;
+    height: 300px;
+  }
+
+  .tile {
+    display: flex; align-items: center; justify-content: center;
+    background-color: #3b82f6; color: white;
+    font-size: 24px; font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s;
+  }
+  
+  /* 空白のタイル */
+  .empty {
+    background-color: transparent;
+    cursor: default;
+  }
+
+  /* クリア時のメッセージ */
+  #message {
+    margin-top: 20px; font-size: 20px; font-weight: bold; color: #10b981;
+    min-height: 24px;
+  }
+
+  button {
+    margin-top: 20px; padding: 10px 20px; font-size: 16px;
+    background-color: #475569; color: white; border: none; border-radius: 5px;
+    cursor: pointer;
+  }
+  button:active { background-color: #334155; }
+</style>
+</head>
+<body>
+  <h2>15 PUZZLE</h2>
+  <div id="board"></div>
+  <div id="message"></div>
+  <button onclick="initGame()">リスタート</button>
+
+  <script>
+    const board = document.getElementById('board');
+    const message = document.getElementById('message');
+    const size = 4; // 4x4のパズル
+    let tiles = [];
+
+    // ゲームの初期化
+    function initGame() {
+      tiles = [];
+      message.innerText = "";
+      // 1から15までの数字と、1つの空白(0)を作る
+      for (let i = 1; i < size * size; i++) {
+        tiles.push(i);
+      }
+      tiles.push(0); 
+      
+      shuffle();
+      render();
+    }
+
+    // タイルをシャッフルする（解ける配置にするため、ランダムに動かす）
+    function shuffle() {
+      for (let i = 0; i < 1000; i++) {
+        const emptyIndex = tiles.indexOf(0);
+        const validMoves = getValidMoves(emptyIndex);
+        const randomMove = validMoves[Math.floor(Math.random() * validMoves.length)];
+        
+        // 空白と隣接するタイルを入れ替える
+        [tiles[emptyIndex], tiles[randomMove]] = [tiles[randomMove], tiles[emptyIndex]];
+      }
+    }
+
+    // 空白マスの隣接インデックスを取得
+    function getValidMoves(emptyIndex) {
+      const moves = [];
+      const row = Math.floor(emptyIndex / size);
+      const col = emptyIndex % size;
+
+      if (row > 0) moves.push(emptyIndex - size); // 上
+      if (row < size - 1) moves.push(emptyIndex + size); // 下
+      if (col > 0) moves.push(emptyIndex - 1); // 左
+      if (col < size - 1) moves.push(emptyIndex + 1); // 右
+
+      return moves;
+    }
+
+    // 画面の描画
+    function render() {
+      board.innerHTML = "";
+      tiles.forEach((num, index) => {
+        const tileDiv = document.createElement("div");
+        if (num === 0) {
+          tileDiv.className = "tile empty";
+        } else {
+          tileDiv.className = "tile";
+          tileDiv.innerText = num;
+          // タッチやクリックで動かすイベントを追加
+          tileDiv.addEventListener("click", () => moveTile(index));
+        }
+        board.appendChild(tileDiv);
+      });
+      checkClear();
+    }
+
+    // タイルを動かす処理
+    function moveTile(index) {
+      const emptyIndex = tiles.indexOf(0);
+      const validMoves = getValidMoves(emptyIndex);
+
+      // クリックしたタイルが空白の隣なら入れ替える
+      if (validMoves.includes(index)) {
+        [tiles[emptyIndex], tiles[index]] = [tiles[index], tiles[emptyIndex]];
+        render();
+      }
+    }
+
+    // クリア判定
+    function checkClear() {
+      // 1から15まで順番に並び、最後が0（空白）ならクリア
+      let isClear = true;
+      for (let i = 0; i < size * size - 1; i++) {
+        if (tiles[i] !== i + 1) {
+          isClear = false;
+          break;
+        }
+      }
+      if (isClear && tiles[tiles.length - 1] === 0) {
+        message.innerText = "CLEAR! おめでとう！🎉";
+      }
+    }
+
+    // 最初にゲームをスタート
+    initGame();
+  </script>
+</body>
+</html>
